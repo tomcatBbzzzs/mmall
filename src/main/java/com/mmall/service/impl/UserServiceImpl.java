@@ -129,8 +129,9 @@ public class UserServiceImpl implements IUserService {
     public ServerResponse<String> selectQuestion(String username) {
         ServerResponse<String> validResponse = checkValid(username, Const.USERNAME);
 
-        if (!validResponse.isSuccess()) {
-            return validResponse;
+        if (validResponse.isSuccess()) {
+            //用户不存在
+            return ServerResponse.createByErrorMessage("用户不存在");
         }
 
         String question = userMapper.selectQuestionByUsername(username);
@@ -182,7 +183,7 @@ public class UserServiceImpl implements IUserService {
         }
 
         String cacheToken = TokenCache.getKey(username);
-        if (StringUtils.isBlank(cacheToken)) {
+        if (StringUtils.isBlank(cacheToken) || TokenCache.invalidValue(cacheToken)) {
             return createByErrorMessage("token无效或者已经过期");
         }
 
@@ -192,6 +193,8 @@ public class UserServiceImpl implements IUserService {
 
         int row = userMapper.updatePasswordByUsername(username, MD5Util.MD5EncodeUtf8(passwordNew));
         if (row > 0) {
+            // 清空token
+            TokenCache.removeKey(username);
             return ServerResponse.createBySuccess("密码修改成功");
         }
 
@@ -272,11 +275,26 @@ public class UserServiceImpl implements IUserService {
     @Override
     public ServerResponse<User> getInfo(Integer userId) {
         User user = userMapper.selectByPrimaryKey(userId);
-        if(user == null) {
+        if (user == null) {
             return ServerResponse.createByErrorMessage("找不到当前用户");
         }
 
         user.setPassword(StringUtils.EMPTY);
         return ServerResponse.createBySuccess(user);
+    }
+
+
+    /**
+     * 判断当前用户是否为管理员
+     *
+     * @param user 用户
+     * @return 当用户为管理员是返回成功
+     */
+    @Override
+    public ServerResponse checkAdminRole(User user) {
+        if (user != null && user.getRole().intValue() == Const.Role.ROLE_ADMIN) {
+            return ServerResponse.createBySuccess();
+        }
+        return ServerResponse.createByError();
     }
 }

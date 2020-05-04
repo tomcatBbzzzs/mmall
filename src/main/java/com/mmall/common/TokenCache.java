@@ -69,4 +69,23 @@ public class TokenCache {
         }
         return null;
     }
+
+    /**
+     * 清楚指定 key 在本地的缓存
+     *
+     * @param key 键
+     */
+    public static void removeKey(String key) {
+        localCache.put(TOKEN_PREFIX + key, NULL);
+    }
+
+    /**
+     * 这个val是否是无效的,如果是 'null' 表示无效
+     *
+     * @param val 值
+     * @return val不为 'null' 返回false
+     */
+    public static boolean invalidValue(String val) {
+        return NULL.equals(val);
+    }
 }

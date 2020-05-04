@@ -102,5 +102,11 @@ public interface IUserService {
      *================= 后台模块 ================*
      *==========================================*/
 
-
+    /**
+     * 判断当前用户是否为管理员
+     *
+     * @param user 用户
+     * @return 当用户为管理员是返回成功
+     */
+    ServerResponse checkAdminRole(User user);
 }

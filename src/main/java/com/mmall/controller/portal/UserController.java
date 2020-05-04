@@ -6,12 +6,14 @@ import com.mmall.common.ServerResponse;
 import com.mmall.pojo.User;
 import com.mmall.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -35,9 +37,9 @@ public class UserController {
      * @param session  会话对象
      * @return 返回用户登录信息
      */
-    @RequestMapping(value = "login.do", method = RequestMethod.GET)
+    @RequestMapping(value = "login.do", method = RequestMethod.POST)
     @ResponseBody
-    public ServerResponse<User> login(String username, String password, HttpSession session) {
+    public ServerResponse<User> login(String username, String password, HttpServletRequest request, HttpSession session) {
         ServerResponse<User> response = iUserService.login(username, password);
         if (response.isSuccess()) {
             session.setAttribute(Const.CURRENT_USER, response.getData());
@@ -155,7 +157,7 @@ public class UserController {
      * @param passwordNew 新密码
      * @return 返回更新密码的操作状态
      */
-    @RequestMapping(value = "reset_password.do", method = RequestMethod.GET)
+    @RequestMapping(value = "reset_password.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> resetPassword(HttpSession session, String password, String passwordNew) {
         User user = (User) session.getAttribute(Const.CURRENT_USER);
@@ -173,7 +175,7 @@ public class UserController {
      * @param user    用户信息
      * @return 修改session中的用户信息
      */
-    @RequestMapping(value = "update_info.do", method = RequestMethod.GET)
+    @RequestMapping(value = "update_info.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<User> update_info(HttpSession session, User user) {
         User currentUser = (User) session.getAttribute(Const.CURRENT_USER);

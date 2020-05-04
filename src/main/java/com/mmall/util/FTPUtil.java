@@ -26,6 +26,7 @@ public class FTPUtil {
         this.user = user;
         this.pwd = pwd;
     }
+
     public static boolean uploadFile(List<File> fileList) throws IOException {
         FTPUtil ftpUtil = new FTPUtil(ftpIp,21,ftpUser,ftpPass);
         logger.info("开始连接ftp服务器");
@@ -66,7 +67,6 @@ public class FTPUtil {
 
 
     private boolean connectServer(String ip,int port,String user,String pwd){
-
         boolean isSuccess = false;
         ftpClient = new FTPClient();
         try {

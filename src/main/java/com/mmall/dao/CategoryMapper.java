@@ -5,6 +5,8 @@ import com.mmall.pojo.Category;
 import java.util.List;
 
 public interface CategoryMapper {
+    int selectCategoryByCategoryName(String name);
+
     int deleteByPrimaryKey(Integer id);
 
     int insert(Category record);

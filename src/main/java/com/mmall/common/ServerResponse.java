@@ -11,6 +11,7 @@ import java.io.Serializable;
  * @date 2020/5/3 - 1:12
  */
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@SuppressWarnings("uncheck")
 public class ServerResponse<T> implements Serializable {
     private int status;
     private String msg;
