@@ -5,8 +5,9 @@ import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.User;
 import com.mmall.service.IUserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ import javax.servlet.http.HttpSession;
 @Controller
 @RequestMapping("/user/")
 public class UserController {
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
     private IUserService iUserService;
@@ -42,6 +44,7 @@ public class UserController {
     public ServerResponse<User> login(String username, String password, HttpServletRequest request, HttpSession session) {
         ServerResponse<User> response = iUserService.login(username, password);
         if (response.isSuccess()) {
+            log.info("保存用户信息:\n" + response.getData());
             session.setAttribute(Const.CURRENT_USER, response.getData());
         }
         return response;
@@ -99,7 +102,7 @@ public class UserController {
     @ResponseBody
     public ServerResponse<User> getUserInfo(HttpSession session) {
         User user = (User) session.getAttribute(Const.CURRENT_USER);
-        System.out.println("当前用户登录信息:\n" + user);
+        log.info("当前用户登录信息:\n" + user);
         if (user != null) {
             return ServerResponse.createBySuccess(user);
         }
