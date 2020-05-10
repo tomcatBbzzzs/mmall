@@ -45,5 +45,12 @@ public class PropertiesUtil {
     }
 
 
+    public static boolean getProperty(String key,boolean defaultValue){
 
+        String value = props.getProperty(key.trim());
+        if(StringUtils.isBlank(value)){
+            return defaultValue;
+        }
+        return Boolean.parseBoolean(value.trim());
+    }
 }
