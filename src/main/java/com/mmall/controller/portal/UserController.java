@@ -99,6 +99,7 @@ public class UserController {
     @ResponseBody
     public ServerResponse<User> getUserInfo(HttpSession session) {
         User user = (User) session.getAttribute(Const.CURRENT_USER);
+        System.out.println("当前用户登录信息:\n" + user);
         if (user != null) {
             return ServerResponse.createBySuccess(user);
         }

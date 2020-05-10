@@ -268,7 +268,7 @@ public class ProductServiceImpl implements IProductService {
                 PageHelper.orderBy(orderByArray[0]+" "+orderByArray[1]);
             }
         }
-        List<Product> productList = productMapper.selectByNameAndCategoryIds(StringUtils.isBlank(keyword)?null:keyword,categoryIdList.size()==0?null:categoryIdList);
+        List<Product> productList = productMapper.selectByNameAndCategoryIds(StringUtils.isBlank(keyword)?null:keyword,categoryIdList.size()==0 ? null : categoryIdList);
 
         List<ProductListVo> productListVoList = Lists.newArrayList();
         for(Product product : productList){
