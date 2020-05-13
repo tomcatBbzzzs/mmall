@@ -35,6 +35,7 @@ public class PropertiesUtil {
         return value.trim();
     }
 
+
     public static String getProperty(String key,String defaultValue){
 
         String value = props.getProperty(key.trim());
@@ -44,6 +45,15 @@ public class PropertiesUtil {
         return value.trim();
     }
 
+
+    public static Integer getProperty(String key,Integer defaultValue){
+
+        String value = props.getProperty(key.trim());
+        if(StringUtils.isBlank(value)){
+            return defaultValue;
+        }
+        return Integer.parseInt(value);
+    }
 
     public static boolean getProperty(String key,boolean defaultValue){
 

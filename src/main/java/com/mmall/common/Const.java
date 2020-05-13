@@ -26,6 +26,14 @@ public class Const {
     public static final String USERNAME = "username";
 
     /**
+     * Redis常用常量类
+     */
+    public interface Redis {
+        // 一小时
+        int ONE_HOUR = 60 * 60;
+    }
+
+    /**
      * 角色常量
      */
     public interface Role {

@@ -5,6 +5,10 @@ import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.User;
 import com.mmall.service.IUserService;
+import com.mmall.util.CookieUtil;
+import com.mmall.util.JsonUtil;
+import com.mmall.util.RedisPoolUtil;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -41,13 +46,19 @@ public class UserController {
      */
     @RequestMapping(value = "login.do", method = RequestMethod.POST)
     @ResponseBody
-    public ServerResponse<User> login(String username, String password, HttpServletRequest request, HttpSession session) {
-        ServerResponse<User> response = iUserService.login(username, password);
-        if (response.isSuccess()) {
-            log.info("保存用户信息:\n" + response.getData());
-            session.setAttribute(Const.CURRENT_USER, response.getData());
+    public ServerResponse<User> login(String username, String password, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+        ServerResponse<User> res = iUserService.login(username, password);
+        // cookie中存储的JSESSIONID=C6DCBF7F62B6D9FE7ECBDDEF47F80DB9
+
+        if (res.isSuccess()) {
+            log.info("保存用户信息:\n" + res.getData());
+            // 将sessionId写入浏览器的cookie
+            CookieUtil.writeLoginToken(response, session.getId());
+
+            // 将登录信息存入到Redis
+            RedisPoolUtil.setEx(session.getId(), JsonUtil.beanToString(res.getData()), Const.Redis.ONE_HOUR);
         }
-        return response;
+        return res;
     }
 
 
@@ -59,8 +70,19 @@ public class UserController {
      */
     @RequestMapping(value = "logout.do", method = RequestMethod.GET)
     @ResponseBody
-    public ServerResponse<String> logout(HttpSession session) {
-        session.removeAttribute(Const.CURRENT_USER);
+    public ServerResponse<String> logout(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+//        session.removeAttribute(Const.CURRENT_USER);
+
+        // 取出本地的cookile
+        String sessionId = CookieUtil.readLoginToken(request);
+
+        // 让存放在Redis中的sessionId失效
+        RedisPoolUtil.expire(sessionId, 0);
+
+        // 删除本地的cookile
+        CookieUtil.deleteLoginToken(request, response);
+
+
         return ServerResponse.createBySuccess();
     }
 
@@ -100,13 +122,27 @@ public class UserController {
      */
     @RequestMapping(value = "get_user_info.do", method = RequestMethod.GET)
     @ResponseBody
-    public ServerResponse<User> getUserInfo(HttpSession session) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        log.info("当前用户登录信息:\n" + user);
-        if (user != null) {
+    public ServerResponse<User> getUserInfo(HttpServletRequest request, HttpSession session) {
+//        User user = (User) session.getAttribute(Const.CURRENT_USER);
+
+        // 现在我们直接从cookie中获取存储的 mmall_login_token 对应的sessionId
+        String sessionId = CookieUtil.readLoginToken(request);
+
+        // 如果我们在cookie中找不到sessionId
+        if (StringUtils.isEmpty(sessionId)) {
+            return ServerResponse.createByErrorMessage("当前用户未登录");
+        } else {
+
+            // 然后从redis-server中取出sessionId对应的User序列化后的信息
+            User user = JsonUtil.stringToBean(RedisPoolUtil.get(sessionId), User.class);
+
+            log.info("当前用户登录信息:\n" + user);
+
+            if (user == null) {
+                return ServerResponse.createByErrorMessage("当前用户未登录");
+            }
             return ServerResponse.createBySuccess(user);
         }
-        return ServerResponse.createByErrorMessage("当前用户未登录");
     }
 
 
